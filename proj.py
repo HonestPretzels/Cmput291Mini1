@@ -32,22 +32,44 @@ if not found:
     if (make_new == 'y'):
         print("Please enter your name: ")
         name = input()
-        while (name == ''):
+        valid_name = True
+        if name == '' or name == ' ':
+            valid_name = False
+        while not valid_name:
             print("You must enter a valid name.")
             print("Please enter your name: ")
             name = input()
+            if name == '' or name == ' ':
+                valid_name = False
+            else:
+                valid_name = True
         print("Please enter your phone number: ")
         phone = input()
-        while (phone == ''):
+        valid_phone = True
+        if phone == '' or phone == ' ':
+            valid_phone = False
+        while not valid_phone:
             print("You must enter a valid phone number.")
-            print("Please enter your phon number: ")
+            print("Please enter your phone number: ")
             phone = input()
+            if phone == '' or phone == ' ':
+                valid_phone = False
+            else:
+                valid_phone = True
+            
         print("Create your password: ")
         pwd = input()
-        while (pwd == ''):
+        valid_pwd = True
+        if valid_pwd == '' or valid_pwd == ' ':
+            valid_pwd = False
+        while not valid_pwd:
             print("You must enter a valid password.")
             print("Please enter your password: ")
             pwd = input()
+            if valid_pwd == '' or valid_pwd == ' ':
+                valid_pwd = False
+            else:
+                valid_pwd = True
 
         c.execute("INSERT INTO members (email, name, phone, pwd) VALUES (:u_email, :u_name, :u_phone, :u_pwd);", {"u_email":username, "u_name":name, "u_phone":phone, "u_pwd":pwd})
         conn.commit()
