@@ -3,7 +3,7 @@ import getpass
 
 
 def login():
-    conn = sqlite3.connect('./proj.db')
+    conn = sqlite3.connect('proj.db')
     c = conn.cursor()
 
 
@@ -98,17 +98,5 @@ def login():
                     c.execute("UPDATE inbox SET seen = 'y' WHERE content = :content AND email = :u_name;", {"content":message[3], "u_name":username})
     else:
         print("You have no unread messages.")
-
-
-    print("Menu: \n")
-    print("Please type one of the following words to perform an action: \n")
-    print("To offer a ride, type \'offer\'")
-    print("To search for a ride, type \'search\'")
-    print("To book members or cancel a booking, type \'bookings\'")
-    print("To post a ride request, type \'post\'")
-    print("To search or delete your requests, type \'requests\'")
-
-    # typing any of the words above will route to the appropriate function
-
 
     conn.close()
