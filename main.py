@@ -1,5 +1,6 @@
 from login import login
 from deleteRides import delete_ride
+from searchRides import search_rides
 
 
 username = login()
@@ -15,4 +16,4 @@ print("To search for a request, type \'search\'")
 
 # typing any of the words above will route to the appropriate function
 
-delete_ride(username)
+search_rides(username)
