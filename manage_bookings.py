@@ -1,17 +1,18 @@
 import sqlite3
+import datetime
 
-def manage_bookings(conn, username):
+def manage_bookings(controller, username):
 
-	cursor = conn.cursor()
+	cursor = controller.cursor()
 
 	quit = False
 
 	print("Manage bookings:")
 	print("To view your bookings, please enter 'view bookings'")
-	print("To view your rides, please enter 'view rides'") #the description could be interpreted as print 5 rides on startup
-	print("To cancel a booking, please enter 'cancel booking'")
-	print("To book a member on a ride, please enter 'book member'")
-	print("To return to the menu, please enter 'menu'")
+	print("To view your rides, please enter 'view rides'") #the description could be interpreted as print 5 rides on startup #TODO list # of seats available for each ride
+	print("To cancel a booking, please enter 'cancel booking'") #TODO
+	print("To book a member on a ride, please enter 'book member'") #TODO
+	print("To return to the menu, please enter 'menu'") #TODO
 
 	while not quit:
 
@@ -42,6 +43,35 @@ def manage_bookings(conn, username):
 			if more == "more":
 				for ride in total_rides:
 					print(ride)
+
+		elif response == "cancel booking":
+			sbno = input("please enter the bno of the booking you want to cancel: ")
+
+			valid_bno = False
+			while not valid_bno:
+				try: 
+					bno = int(sbno)
+					
+					bookings = cursor.execute("SELECT b.bno, b.email, b.rno, b.cost, b.seats, b.pickup, b.dropoff FROM bookings b, rides r WHERE r.rno = b.rno and r.driver = :u_username ORDER BY r.rno", {"u_username":username})
+
+					for booking in bookings:
+						if booking[0] == bno:
+							valid_bno = True
+						else:
+							print("Invalid bno")
+				except TypeError:
+					print("Invalid bno")
+
+				valid_bno = True #test line until database established
+
+			member_data = cursor.execute("SELECT email, rno FROM bookings WHERE bno = :u_bno", {"u_bno":bno})
+
+			message_string = "Your booking" + str(bno) + "for ride" + str(member_data[1]) + "has been cancelled"
+			cursor.execute("INSERT INTO inbox VALUES (:email, :msgTimestamp, :sender, :content, :rno, :seen)",{"email":member_data[0], "msgTimestamp":datetime.now(), "sender":username, "content":message_string, "rno":member_data[1], "seen":'n'})
+			controller.commit()
+			print("booking cancelled")
+
+
 
 
 
