@@ -100,3 +100,5 @@ def login():
         print("You have no unread messages.")
 
     conn.close()
+
+    return username

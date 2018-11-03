@@ -3,7 +3,7 @@ import re
 conn = sqlite3.connect('./proj.db')
 c = conn.cursor()
 
-def offer():
+def offer(current_user_email):
     
 
     # DATE
@@ -57,15 +57,38 @@ def offer():
         return
 
     #CAR
-    ################ ADD CAR FUNCTIONALITY #################
+    add_car = input('Would you like to add a car to this ride y/n? ').lower()
+    while(add_car != 'n' and add_car != 'y'):
+        add_car = input('Input invalid. Please respond with either \'y\' or \'n\'. Would you like to add a car to this ride? ')
+    car, car_found = choose_car(add_car,current_user_email)
+
+    #CREATE RNO AND INSERT
+    c.execute('SELECT rno FROM rides ORDER BY rno desc LIMIT 1')
+    rno = c.fetchone()[0] + 1
+    if (car_found):
+        c.execute('INSERT INTO rides VALUES (:rno, :price, :rdate, :seats, :lugDesc, :src, :dst, :driver, :cno);', {"rno":rno, "price":seat_price, "rdate":date, "seats":num_seats, "lugDesc":luggage_description, "src":source, "dst":destination, "driver":current_user_email, "cno":car})
+        print('Added a ride: %s, %s, %s, %s, %s, %s, %s, %s, %s'%(rno,seat_price,date,num_seats,luggage_description,source,destination,current_user_email,car))
+    else:
+        c.execute('INSERT INTO rides VALUES (:rno, :price, :rdate, :seats, :lugDesc, :src, :dst, :driver, :cno);', {"rno":rno, "price":seat_price, "rdate":date, "seats":num_seats, "lugDesc":luggage_description, "src":source, "dst":destination, "driver":current_user_email, "cno":None})
+        print('Added a ride: %s, %s, %s, %s, %s, %s, %s, %s'%(rno,seat_price,date,num_seats,luggage_description,source,destination,current_user_email))
 
     #ENROUTE
-    ################ ADD EN ROUTE FUNCTIONALITY ############
-
-    #INSERT
-    ################ INSERT INTO RIDES TABLE ###############
-
-
+    add_enroute = input('Would you like to add an enroute destination to this ride y/n? ').lower()
+    while(add_enroute != 'n'):
+        if(add_enroute != 'y'):
+            add_enroute = input('Input invalid. Please respond with either \'y\' or \'n\'. Would you like to add an enroute destination to this ride? ')
+        else:
+            enroute_keyword = input('Please enter a location keyword: ')
+            enroute_valid = re.match('^[A-Za-z0-9_]*$',enroute_keyword)
+            while(not enroute_valid):
+                enroute_keyword = input('Location keyword not valid. Please enter another location: ')
+                enroute_valid = re.match('^[A-Za-z0-9_]*$',enroute_keyword)
+            enroute, enroute_found = choose_location(enroute_keyword)
+            if(enroute_found):
+                c.execute("INSERT INTO enroute VALUES (:rno, :lcode)", {"rno":rno, ":lcode":enroute})
+                print('Enroute location: %s added to ride: %s'%(enroute,rno))
+            add_enroute = input("Would you like to add another enroute location y/n? ")
+    return
 
 
 def choose_location(location_keyword):
@@ -93,3 +116,27 @@ def choose_location(location_keyword):
         print('No more locations left')
         choices_found = False
         return '', choices_found
+
+def choose_car(add_car,current_user_email):
+    # Helper function to allow the user to choose a car
+
+    if(add_car == 'y'):
+        car = input('Please enter the car number: ')
+        car_valid = re.match('^[0-9]*$', car)
+        while (not car_valid):
+            car = input('Car number invalid. Please enter the car number: ')
+            car_valid = re.match('^[0-9]*$', car)  
+        c.execute('SELECT cno FROM cars WHERE owner == ?', current_user_email)
+        owned_cars = c.fetchall()
+        if(not car in owned_cars):
+            add_car = input('You do not own that car. Would you like to add a different car to the ride y/n? ').lower()
+            while(add_car != 'n' and add_car != 'y'):
+                add_car = input('Input invalid. Please respond with either \'y\' or \'n\'. Would you like to add a different car to this ride? ')
+            if(add_car == 'n'):
+                return '', False
+            else:
+                return choose_car(add_car, current_user_email)
+        else:
+            return car, True
+    else:
+        return '', False
