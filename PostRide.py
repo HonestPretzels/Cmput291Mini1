@@ -1,4 +1,5 @@
 import sqlite3
+import re #regular expressions
 
 
 
@@ -7,9 +8,11 @@ def PostOffer(cursor, username):
 	print("Posting Ride\n")
 
 	valid_date = False
+	date_format = re.compile('\d\d\d\d-\d\d-\d\d')
 	while not valid_date:
-		date = input("Please provide a date: ")
-		valid_date = True
+		date = input("Please provide a date (YYYY-MM-DD): ")
+		if r.match(date) is not None:
+			valid_date = True
 
 	pick_up_code = input("Please provide a pickup location code: ")
 	drop_off_code = input("Please provide a dropoff location code: ")
