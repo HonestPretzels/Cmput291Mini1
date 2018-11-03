@@ -94,6 +94,8 @@ def PostRideRequest(controller, username):
 	cursor.execute("INSERT INTO requests (rid, email, rdate, pickup, dropoff, amount) VALUES (:r_rid, :u_email, :r_rdate, :r_pickup, :r_dropoff, :r_amount)", {"r_rid":rid, "u_email":username, "r_rdate":date, "r_pickup":int(pick_up_code), "r_dropoff":int(drop_off_code), "r_amount": price})
 	controller.commit()
 
+	print("Ride request posted, returning to menu")
+
 #for testing purposes only
 conn = sqlite3.connect('./proj.db')
 c = conn.cursor()
