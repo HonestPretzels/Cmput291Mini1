@@ -1,12 +1,14 @@
 import sqlite3
 import re #regular expressions
-import datetime
+import datetime #for checking valid dates
 
 
 
-def PostOffer(cursor, username):
+def PostRideRequest(controller, username):
 
 	print("Posting Ride\n")
+
+	cursor = controller.cursor()
 
 	valid_date = False
 	date_format = re.compile('\d\d\d\d-\d\d-\d\d')
@@ -36,7 +38,7 @@ def PostOffer(cursor, username):
 
 		#This section will be uncommented once we've established a database
 		# for lcode in locations:
-		# 	if lcode == pick_up_code:
+		# 	if lcode[0] == pick_up_code:
 		# 		valid_location = True
 
 		# if not valid_location:
@@ -52,7 +54,7 @@ def PostOffer(cursor, username):
 
 		#This section will be uncommented once we've established a database
 		# for lcode in locations:
-		# 	if lcode == drop_off_code:
+		# 	if lcode[0] == drop_off_code:
 		# 		valid_location = True
 
 		# if not valid_location:
@@ -68,6 +70,8 @@ def PostOffer(cursor, username):
 		valid_price = True
 		try:
 			price = int(amount)
+			if price <= 0:
+				valid_price = False
 		except ValueError:
 			valid_price = False
 
@@ -76,13 +80,26 @@ def PostOffer(cursor, username):
 
 	print(date, int(pick_up_code), int(drop_off_code), price)
 
+	valid_rid = False
+	highest_rid = 0
 
-	# rid = 
-	#c.execute("INSERT INTO requests (rid, email, rdate, pickup, dropoff, amount) values (:r_rid, :u_email, :r_rdate, :r_pickup, :r_dropoff, :r_amount)", {"r_rid":tbd, "u_email":username, "r_rdate":date, "r_pickup": (int)pick_up_code, "r_dropoff":(int)drop_off_code, "r_amount": price})
+	existing_rids = c.execute("SELECT rid FROM requests")
 
+	for temp_rid in existing_rids:
+		if temp_rid[0] > highest_rid:
+			highest_rid = temp_rid[0]
 
+	rid = highest_rid + 1
 
+	cursor.execute("INSERT INTO requests (rid, email, rdate, pickup, dropoff, amount) VALUES (:r_rid, :u_email, :r_rdate, :r_pickup, :r_dropoff, :r_amount)", {"r_rid":rid, "u_email":username, "r_rdate":date, "r_pickup":int(pick_up_code), "r_dropoff":int(drop_off_code), "r_amount": price})
+	controller.commit()
+
+#for testing purposes only
 conn = sqlite3.connect('./proj.db')
 c = conn.cursor()
 
-PostOffer(c, "ltyue@ualberta.ca")
+PostRideRequest(conn, "ltyue@ualberta.ca")
+
+requests = c.execute("SELECT * FROM requests")
+for request in requests:
+	print(request)
