@@ -1,7 +1,7 @@
 import sqlite3
 import sys
 from login import login
-from offer import offer
+from rides import offer_ride, search_rides
 
 def main():
     if len(sys.argv)!=2:
@@ -18,7 +18,10 @@ def main():
             help()
 
         elif (action_choice == 'offer'):
-            offer(current_user_email)
+            offer_ride(current_user_email)
+        
+        elif (action_choice == 'search_rides'):
+            search_rides(current_user_email)
         
         else:
             print('That is not a possible action. For information on possible actions type \'help\'')
