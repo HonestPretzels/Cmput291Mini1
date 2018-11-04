@@ -20,8 +20,8 @@ def manage_bookings(controller, username):
 
 		print("\nPosted Rides (up to 5)")
 		for ride in rides:
-			print("Rno: %d, Price per Seat: %d, Date: %s, Seats: %d, Luggage Description: %s, Source Lcode: %d: Destination Lcode: %d",(ride[0], ride[1], ride[2], ride[3], ride[4], ride[5], ride[6]))
-		
+			#print("Rno: {ride[0]}, Price per Seat: {ride[1]}, Date: {ride[2]}, Seats: {ride[3]}, Luggage Description: {ride[4]}, Source Lcode: {ride[5]}: Destination Lcode: {ride[6]}")
+			print(ride)
 		response = input().lower()
 
 		if response == "menu":
@@ -34,10 +34,10 @@ def manage_bookings(controller, username):
 			bookings = cursor.execute("SELECT b.bno, b.email, b.rno, b.cost, b.seats, b.pickup, b.dropoff FROM bookings b, rides r WHERE r.rno = b.rno and r.driver = :u_username ORDER BY r.rno", {"u_username":username})
 
 
-
+			print("Bookings:")
 			for booking in bookings:
-				print("Booking No.: %d, Member: %s, Ride No.: %d, Cost Per Seat: %d, No. Of Seats: %d, Pickup Location Code: %d, Dropoff Location Code: %d", (booking[0], booking[1], booking[2], booking[3], booking[4], booking[5], booking[6]))
-
+				#print("Booking No.: %d, Member: %s, Ride No.: %d, Cost Per Seat: %d, No. Of Seats: %d, Pickup Location Code: %d, Dropoff Location Code: %d", (booking[0], booking[1], booking[2], booking[3], booking[4], booking[5], booking[6]))
+				print(booking)
 
 
 			do_return = False
@@ -55,20 +55,26 @@ def manage_bookings(controller, username):
 					match = False
 					try:
 						bno = int(get_response)
-
+						bookings = cursor.execute("SELECT b.bno, b.email, b.rno, b.cost, b.seats, b.pickup, b.dropoff FROM bookings b, rides r WHERE r.rno = b.rno and r.driver = :u_username ORDER BY r.rno", {"u_username":username})
 						for booking in bookings:
-							if booking[0] == bno:
+							#print(booking[0])
+							if int(booking[0]) == bno:
 								match = True
 
 					except ValueError:
+						#print("NAN")
 						continue
 
 					if match == True:
-						booking = cursor.execute("SELECT * FROM bookings WHERE bno = :_bno;", {"_bno":bno})
+						booking = cursor.execute("SELECT * FROM bookings WHERE bno = :_bno;", {"_bno":bno}).fetchone()
+						# booking = value.fetchone()[0]
 
+						date = cursor.execute("SELECT datetime('now')")
+						datetime = cursor.fetchone()[0]
+						#member_data = cursor.execute("SELECT * FROM members WHERE email = :_email",{"_email":booking[7]}).fetchone()[0]
 						cursor.execute("DELETE FROM bookings WHERE bno = :_bno;", {"_bno":bno})
-						message_string = "Your booking " + str(bno) + " for ride " + booking[1] + " has been cancelled"
-						cursor.execute("INSERT INTO inbox VALUES (:_email, :_msgTimestamp, :_sender, :_content, :_rno, :_seen)",{"_email":member_data[0], "_msgTimestamp":datetime.now(), "_sender":username, "_content":message_string, "_rno":member_data[1], "_seen":'n'})
+						message_string = "Your booking " + str(bno) + " for ride " + str(booking[2]) + " has been cancelled"
+						cursor.execute("INSERT INTO inbox VALUES (:_email, :_msgTimestamp, :_sender, :_content, :_rno, :_seen)",{"_email":booking[1], "_msgTimestamp":datetime, "_sender":username, "_content":message_string, "_rno":booking[2], "_seen":'n'})
 						controller.commit()
 						print("booking cancelled")
 
@@ -105,7 +111,7 @@ def manage_bookings(controller, username):
 	 					break
 
 			except ValueError:
-		 		input("Invalid Response, press any key to continue")
+		 		input("Invalid Response, press enter to continue")
 
 			if valid_rno:
 
@@ -123,7 +129,7 @@ def manage_bookings(controller, username):
 				#get cost per seat
 				valid_response = False
 				while not valid_response:
-					cost_per_seat = input("Please enter a cost per seat")
+					cost_per_seat = input("Please enter a cost per seat: ")
 
 					try:
 						cost = int(cost_per_seat)
@@ -138,9 +144,10 @@ def manage_bookings(controller, username):
 					seats = input("Please enter the number of seats: ")
 
 					try:
-						int(seats)
+						seats = int(seats)
 
-						num_seats = tracked_ride[3]
+						num_seats = int(tracked_ride[3])
+						#print(num_seats)
 						num_seats -= seats
 						bookings = cursor.execute("SELECT seats FROM bookings WHERE rno = :_rno;",{"_rno":tracked_ride[0]})
 
@@ -175,6 +182,7 @@ def manage_bookings(controller, username):
 						print("Not a valid location, please try again")
 
 				#get dropoff
+				locations = cursor.execute("SELECT lcode FROM locations;")
 				valid_response = False
 				while not valid_response:
 					dropoff = input("Please enter a dropoff location lcode: ")
@@ -196,16 +204,20 @@ def manage_bookings(controller, username):
 					if booking[0] > bno:
 						bno = booking[0]
 				bno += 1
+				date = cursor.execute("SELECT datetime('now')")
+				datetime = cursor.fetchone()[0]
+
+
 				cursor.execute("INSERT INTO bookings VALUES (:_bno, :_email, :_rno, :_cost, :_seats, :_pickup, :_dropoff);",{"_bno":bno, "_email":email, "_rno":rno, "_cost":cost, "_seats":seats, "_pickup":pickup, "_dropoff":dropoff})
 				message_string = "You have been booked on ride " + str(rno) + " from " + pickup + " to " + dropoff
-				cursor.execute("INSERT INTO inbox values (:_email, :_time, :_sender, :_content, :_rno, :_seen);",{"_email":email, "_time":datetime.now(),"_sender":username,"_content":message_string, "_rno":rno, "_seen":'n'})
+				cursor.execute("INSERT INTO inbox values (:_email, :_time, :_sender, :_content, :_rno, :_seen);",{"_email":email, "_time":datetime,"_sender":username,"_content":message_string, "_rno":rno, "_seen":'n'})
 				controller.commit()
 				input("Booking added, press enter to return")
 
 #----------------------------------------------------------------------------------------------------------------------------#
 			#No valid response
-			else:
-				input("Invalid response, press enter to continue")
+			# else:
+			# 	input("Invalid response, press enter to continue")
 
 
 
