@@ -16,7 +16,7 @@ def manage_bookings(controller, username):
 		print("To book a member on a ride, please enter the ride number")
 		print("To return to the menu, please enter 'menu'")
 		#need to rewrite to return number of remaining seats
-		rides = cursor.execute("SELECT * FROM rides r WHERE r.driver LIMIT 5 = :u_username", {"u_username":username})
+		rides = cursor.execute("SELECT * FROM rides r WHERE r.driver = :u_username LIMIT 5;", {"u_username":username})
 
 		print("\nPosted Rides (up to 5)")
 		for ride in rides:
@@ -214,4 +214,6 @@ def manage_bookings(controller, username):
 #testing function
 
 conn = sqlite3.connect('./proj.db')
-manage_bookings(conn, "test_user")
+manage_bookings(conn, "tom.maurer@yahoo.com")
+
+conn.close()
