@@ -13,8 +13,9 @@ def manage_bookings(controller, username):
 		print("Manage bookings:")
 		print("To view your bookings, please enter 'view bookings'")
 		print("To view all of your rides, please enter 'view rides'") 
-		print("To book a member on a ride, please enter the ride number") #TODO
+		print("To book a member on a ride, please enter the ride number")
 		print("To return to the menu, please enter 'menu'")
+		#need to rewrite to return number of remaining seats
 		rides = cursor.execute("SELECT * FROM rides r WHERE r.driver LIMIT 5 = :u_username", {"u_username":username})
 
 		print("\nPosted Rides (up to 5)")
@@ -63,11 +64,11 @@ def manage_bookings(controller, username):
 						continue
 
 					if match == True:
-						booking = cursor.execute("SELECT * FROM bookings WHERE bno = :bno;", {"bno":bno})
+						booking = cursor.execute("SELECT * FROM bookings WHERE bno = :_bno;", {"_bno":bno})
 
-						cursor.execute("DELETE FROM bookings WHERE bno = :bno;", {"bno":bno})
-						message_string = "Your booking" + str(bno) + "for ride" + booking[1] + "has been cancelled"
-						cursor.execute("INSERT INTO inbox VALUES (:email, :msgTimestamp, :sender, :content, :rno, :seen)",{"email":member_data[0], "msgTimestamp":datetime.now(), "sender":username, "content":message_string, "rno":member_data[1], "seen":'n'})
+						cursor.execute("DELETE FROM bookings WHERE bno = :_bno;", {"_bno":bno})
+						message_string = "Your booking " + str(bno) + " for ride " + booking[1] + " has been cancelled"
+						cursor.execute("INSERT INTO inbox VALUES (:_email, :_msgTimestamp, :_sender, :_content, :_rno, :_seen)",{"_email":member_data[0], "_msgTimestamp":datetime.now(), "_sender":username, "_content":message_string, "_rno":member_data[1], "_seen":'n'})
 						controller.commit()
 						print("booking cancelled")
 
@@ -156,34 +157,37 @@ def manage_bookings(controller, username):
 					except ValueError:
 						print("Invalid input, please try again")
 
+				#need to alter slightly: lcodes can be characters should be a quick fix
 				#get picikup
 				locations = cursor.execute("SELECT lcode FROM locations;")
 				valid_response = False
 				while not valid_response:
 					pickup = input("Please enter a pickup location lcode: ")
-					try:
-						pickup_lcode = int(pickup)
 
-						for lcode in locations:
-							if pickup_lcode == lcode[0]:
-								valid_response = True
-								break
-					except ValueError:
-						print("Invalid input, please try again")
+					lcode_match = False
+					for lcode in locations:
+						if pickup == lcode[0]:
+							valid_response = True
+							lcode_match = True
+							break
+
+					if not lcode_match:
+						print("Not a valid location, please try again")
 
 				#get dropoff
 				valid_response = False
 				while not valid_response:
 					dropoff = input("Please enter a dropoff location lcode: ")
-					try:
-						dropoff_lcode = int(dropoff)
 
-						for lcode in locations:
-							if dropoff_lcode == lcode[0]:
-								valid_response = True
-								break
-					except ValueError:
-						print("Invalid input, please try again")
+					lcode_match = False
+					for lcode in locations:
+						if dropoff == lcode[0]:
+							valid_response = True
+							lcode_match = True
+							break
+
+					if not lcode_match:
+						print("Not a valid location, please try again")
 
 				#generate bno
 				bno = 0
@@ -192,7 +196,9 @@ def manage_bookings(controller, username):
 					if booking[0] > bno:
 						bno = booking[0]
 				bno += 1
-				cursor.execute("INSERT INTO bookings VALUES :_bno, :_email, :_rno, :_cost, :_seats, :_pickup, :_dropoff;",{"_bno":bno, "_email":email, "_rno":rno, "_cost":cost, "_seats":seats, "_pickup":pickup_lcode, "_dropoff":dropoff_lcode})
+				cursor.execute("INSERT INTO bookings VALUES (:_bno, :_email, :_rno, :_cost, :_seats, :_pickup, :_dropoff);",{"_bno":bno, "_email":email, "_rno":rno, "_cost":cost, "_seats":seats, "_pickup":pickup, "_dropoff":dropoff})
+				message_string = "You have been booked on ride " + str(rno) + " from " + pickup + " to " + dropoff
+				cursor.execute("INSERT INTO inbox values (:_email, :_time, :_sender, :_content, :_rno, :_seen);",{"_email":email, "_time":datetime.now(),"_sender":username,"_content":message_string, "_rno":rno, "_seen":'n'})
 				controller.commit()
 				input("Booking added, press enter to return")
 
@@ -204,15 +210,8 @@ def manage_bookings(controller, username):
 
 
 
-
-
-
-
-
-
-
-
-
+#-------------------------------------------#
+#testing function
 
 conn = sqlite3.connect('./proj.db')
 manage_bookings(conn, "test_user")
