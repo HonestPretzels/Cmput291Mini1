@@ -4,6 +4,8 @@ from login import login
 from deleteRequest import delete_request
 from searchRequests import search_requests
 from rides import offer_ride, search_rides
+from post_ride_request import post_ride_request
+from manage_bookings import manage_bookings
 
 def main():
     if len(sys.argv)!=2:
@@ -30,6 +32,12 @@ def main():
 
         elif (action_choice == 'delete_request'):
             delete_request(current_user_email, database)
+
+        elif (action_choice == 'post_request'):
+            post_ride_request(conn,current_user_email)
+
+        elif (action_choice == 'manage_bookings'):
+            manage_bookings(conn,current_user_email)
         
         else:
             print('That is not a possible action. For information on possible actions type \'help\'')
