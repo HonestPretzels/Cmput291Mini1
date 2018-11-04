@@ -3,7 +3,7 @@ import getpass
 
 
 def login():
-    conn = sqlite3.connect('./proj.db')
+    conn = sqlite3.connect('proj.db')
     c = conn.cursor()
 
 
