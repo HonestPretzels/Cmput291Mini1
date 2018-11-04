@@ -38,6 +38,9 @@ def main():
         
     conn.close()
 def help():
-    print('INSERT HELP HERE')
+    print("To offer a ride, type 'offer")
+    print("To search for rides, type 'search_rides'")
+    print("To search ride requests, type 'search_requests'")
+    print("To delete a request you've made, type 'delete_request'")
 
 main()
