@@ -1,7 +1,7 @@
 import sqlite3
 
-def delete_ride(username):
-    conn = sqlite3.connect('./proj.db')
+def delete_request(username, database):
+    conn = sqlite3.connect('./'+database)
     c = conn.cursor()
 
     c.execute("SELECT * FROM requests WHERE email = :u_name;", { "u_name":username })
