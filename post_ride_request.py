@@ -94,25 +94,16 @@ def PostRideRequest(controller, username):
 
 	cursor.execute("INSERT INTO requests (rid, email, rdate, pickup, dropoff, amount) VALUES (:r_rid, :u_email, :r_rdate, :r_pickup, :r_dropoff, :r_amount)", {"r_rid":rid, "u_email":username, "r_rdate":date, "r_pickup":pick_up_code, "r_dropoff":drop_off_code, "r_amount": price})
 
-	# I want to do some error handling to check before commits but don't know how yet
-	# if sqlca.sqlcode == 0:
-	# 	controller.commit()
-	# 	print("Ride request posted, returning to menu")
-
-	# else:
-	# 	psqlca.sqlerrm.sqlerrmc[sqlca.sqlerrm.sqlerrml] = '\0';
-	# 	print("Oracle error: %s\n", sqlca. sqlerrm.sqlerrmc);
-
 	controller.commit()
 	print("Ride request posted, returning to menu")
 
 
 #for testing purposes only
-conn = sqlite3.connect('./proj.db')
-c = conn.cursor()
+# conn = sqlite3.connect('./proj.db')
+# c = conn.cursor()
 
-PostRideRequest(conn, "ltyue@ualberta.ca")
+# PostRideRequest(conn, "ltyue@ualberta.ca")
 
-requests = c.execute("SELECT * FROM requests")
-for request in requests:
-	print(request)
+# requests = c.execute("SELECT * FROM requests")
+# for request in requests:
+# 	print(request)

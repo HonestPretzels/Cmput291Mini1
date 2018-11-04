@@ -225,7 +225,7 @@ def manage_bookings(controller, username):
 #-------------------------------------------#
 #testing function
 
-conn = sqlite3.connect('./proj.db')
-manage_bookings(conn, "tom.maurer@yahoo.com")
+# conn = sqlite3.connect('./proj.db')
+# manage_bookings(conn, "tom.maurer@yahoo.com")
 
-conn.close()
+# conn.close()
