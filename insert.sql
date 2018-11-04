@@ -34,3 +34,6 @@ INSERT INTO rides VALUES('4', '3', '2019-01-01', '2', 'Big','CAL01','CAL02','joP
 INSERT INTO enroute VALUES('1', 'CAL02');
 INSERT INTO enroute VALUES('1', 'CAL03');
 INSERT INTO enroute VALUES('2', 'BAL01');
+
+INSERT INTO requests VALUES('1','joPoulin@hotmail.ca','2018-12-10','CAL01','CAL04','5');
+INSERT INTO requests VALUES('2','joPoulin@hotmail.ca','2018-12-20','EDM01','CAL01','1');

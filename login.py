@@ -69,11 +69,15 @@ def login(database):
             valid_name = True
             if name == '' or name == ' ':
                 valid_name = False
+            elif not re.match('^[A-Za-z0-9_]*$', name):
+                valid_name = False
             while not valid_name:
                 print("You must enter a valid name.")
                 print("Please enter your name: ")
                 name = input()
                 if name == '' or name == ' ':
+                    valid_name = False
+                elif not re.match('^[A-Za-z0-9_]*$', name):
                     valid_name = False
                 else:
                     valid_name = True
@@ -104,12 +108,20 @@ def login(database):
             valid_pwd = True
             if valid_pwd == '' or valid_pwd == ' ':
                 valid_pwd = False
+            elif (len(pwd) > 6):
+                valid_pwd = False
+            elif not re.match('^[A-Za-z0-9_]*$', pwd):
+                valid_name = False
             while not valid_pwd:
                 print("You must enter a valid password.")
                 print("Please enter your password: ")
                 pwd = input()
                 if valid_pwd == '' or valid_pwd == ' ':
                     valid_pwd = False
+                elif (len(pwd) > 6):
+                    valid_pwd = False
+                elif not re.match('^[A-Za-z0-9_]*$', pwd):
+                    valid_name = False
                 else:
                     valid_pwd = True
 
@@ -138,6 +150,7 @@ def login(database):
                 if message[5] == 'n':
                     print(message)
                     c.execute("UPDATE inbox SET seen = 'y' WHERE content = :content AND email = :u_name;", {"content":message[3], "u_name":username})
+                    conn.commit()
     else:
         print("You have no unread messages.")
 

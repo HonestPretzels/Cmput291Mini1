@@ -2,7 +2,7 @@ import sqlite3
 import sys
 from login import login
 from deleteRequest import delete_request
-from searchRides import search_rides1
+from searchRequests import search_requests
 from rides import offer_ride, search_rides
 
 def main():
@@ -23,7 +23,10 @@ def main():
             offer_ride(current_user_email)
         
         elif (action_choice == 'search_rides'):
-            search_rides1(current_user_email, database)
+            search_rides(current_user_email)
+
+        elif (action_choice == 'search_requests'):
+            search_requests(current_user_email, database)
 
         elif (action_choice == 'delete_request'):
             delete_request(current_user_email, database)
