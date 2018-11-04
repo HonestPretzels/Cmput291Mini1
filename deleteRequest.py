@@ -1,4 +1,5 @@
 import sqlite3
+import re
 
 def delete_request(username, database):
     conn = sqlite3.connect('./'+database)

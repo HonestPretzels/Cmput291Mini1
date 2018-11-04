@@ -61,7 +61,7 @@ def login(database):
         while not valid_make_new:
             print("Please type \'y\' or \'n\'")
             make_new = input()
-        if (make_new == 'y'):
+        if (make_new.lower() == 'y'):
 
             # Get name
             print("Please enter your name: ")

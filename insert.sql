@@ -36,4 +36,11 @@ INSERT INTO enroute VALUES('1', 'CAL03');
 INSERT INTO enroute VALUES('2', 'BAL01');
 
 INSERT INTO requests VALUES('1','joPoulin@hotmail.ca','2018-12-10','CAL01','CAL04','5');
-INSERT INTO requests VALUES('2','joPoulin@hotmail.ca','2018-12-20','EDM01','CAL01','1');
+INSERT INTO requests VALUES('2','joPoulin@hotmail.ca','2018-12-20','EDM01','CAL01','10');
+INSERT INTO requests VALUES('3','joPoulin@hotmail.ca','2018-12-20','BAL01','CAL01','19');
+INSERT INTO requests VALUES('4','joPoulin@hotmail.ca','2018-12-20','EDM01','CAL01','15');
+INSERT INTO requests VALUES('5','joPoulin@hotmail.ca','2018-12-20','EDM01','CAL01','122');
+INSERT INTO requests VALUES('6','joPoulin@hotmail.ca','2018-12-20','EDM01','BAL01','15');
+INSERT INTO requests VALUES('7','joPoulin@hotmail.ca','2018-12-20','EDM01','CAL01','112');
+INSERT INTO requests VALUES('8','joPoulin@hotmail.ca','2018-12-20','BAL01','CAL01','17');
+INSERT INTO requests VALUES('9','joPoulin@hotmail.ca','2018-12-20','EDM01','CAL01','144');
