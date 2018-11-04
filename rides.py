@@ -69,8 +69,9 @@ def offer_ride(current_user_email):
         c.execute('INSERT INTO rides VALUES (:rno, :price, :rdate, :seats, :lugDesc, :src, :dst, :driver, :cno);', {"rno":rno, "price":seat_price, "rdate":date, "seats":num_seats, "lugDesc":luggage_description, "src":source, "dst":destination, "driver":current_user_email, "cno":car})
         print('Added a ride: %s, %s, %s, %s, %s, %s, %s, %s, %s'%(rno,seat_price,date,num_seats,luggage_description,source,destination,current_user_email,car))
     else:
-        c.execute('INSERT INTO rides VALUES (:rno, :price, :rdate, :seats, :lugDesc, :src, :dst, :driver, :cno);', {"rno":rno, "price":seat_price, "rdate":date, "seats":num_seats, "lugDesc":luggage_description, "src":source, "dst":destination, "driver":current_user_email, "cno":None})
+        c.execute('INSERT INTO rides VALUES (:rno, :price, :rdate, :seats, :lugDesc, :src, :dst, :driver, :cno);', {"rno":rno, "price":seat_price, "rdate":date, "seats":num_seats, "lugDesc":luggage_description, "src":source, "dst":destination, "driver":current_user_email, "cno":''})
         print('Added a ride: %s, %s, %s, %s, %s, %s, %s, %s'%(rno,seat_price,date,num_seats,luggage_description,source,destination,current_user_email))
+    conn.commit()
 
     #ENROUTE
     add_enroute = input('Would you like to add an enroute destination to this ride y/n? ').lower()
@@ -108,6 +109,7 @@ def search_rides(current_user_email):
             keyword2_valid = re.match('^[A-Za-z0-9_]*$',keyword2)
             while(not keyword2_valid):
                 keyword2 = input('Keyword not valid. Please enter a second location keyword: ')
+                keyword2_valid = re.match('^[A-Za-z0-9_]*$',keyword2)
             add_keyword = 'n'
             keyword_count = 2
         # Third keyword
@@ -135,28 +137,31 @@ def search_rides(current_user_email):
         return
 
     message_request = input('Would you like to message the poster of this ride requesting a booking y/n? ').lower()
-    while(message_request != 'n'):
+    message_sent = False
+    while(message_request != 'n' and not message_sent):
         if (message_request != 'y'):
             message_request = input('Input invalid. Please respond with either \'y\' or \'n\'. Would you like to message the poster of this ride requesting a booking? ')
         else:
             message(rno,current_user_email)
+            message_sent = True
 
 
 
 
-def choose_location(location_keyword): ######################## FIX TO CHECK LCODE RESPONSE ############################
+def choose_location(location_keyword):
     # Takes a keyword argument and allows the user to choose a location which matches that keyword
 
     choices_found = False
+    choice = None
     if (len(location_keyword)==5):      # Lcode case
-        c.execute('SELECT lcode FROM locations WHERE lcode = ?', (location_keyword))
+        c.execute('SELECT lcode FROM locations WHERE lcode LIKE ?', (location_keyword,))
         choice = c.fetchone()
     if (choice != None):
         choices_found = True
         return choice[0], choices_found
     
     else:                               # Keyword case
-        c.execute("SELECT lcode, address, city, prov FROM locations WHERE address LIKE '%?%' OR prov LIKE '%?' or city LIKE '%?%'", (location_keyword,location_keyword,location_keyword))
+        c.execute("SELECT lcode, address, city, prov FROM locations WHERE address LIKE ? OR prov LIKE ? or city LIKE ?", ('%'+location_keyword+'%','%'+location_keyword+'%','%'+location_keyword+'%'))
         options = c.fetchmany(5)
         while (len(options)>0): # All through the options
             for option in options:
@@ -172,15 +177,17 @@ def choose_location(location_keyword): ######################## FIX TO CHECK LCO
 
 def choose_car(add_car,current_user_email):
     # Helper function to allow the user to choose a car
-
     if(add_car == 'y'):
         car = input('Please enter the car number: ')
         car_valid = re.match('^[0-9]*$', car)
         while (not car_valid):
             car = input('Car number invalid. Please enter the car number: ')
             car_valid = re.match('^[0-9]*$', car)  
-        c.execute('SELECT cno FROM cars WHERE owner == ?', current_user_email)
-        owned_cars = c.fetchall()
+        c.execute('SELECT cno FROM cars WHERE owner == ?', (current_user_email,))
+        car_responses = c.fetchall()
+        owned_cars = []
+        for row in car_responses:
+            owned_cars.append(str(row[0]))
         if(not car in owned_cars):
             add_car = input('You do not own that car. Would you like to add a different car to the ride y/n? ').lower()
             while(add_car != 'n' and add_car != 'y'):
@@ -207,10 +214,10 @@ def multi_parameter_ride_search(keyword1, keyword2=None, keyword3 = None):
     location_returns = {}
     for keyword in keywords:
         location_returns[keyword] = []
-        c.execute("SELECT DISTINCT lcode FROM locations WHERE address LIKE '%?%' OR prov LIKE '%?' or city LIKE '%?%'", (keyword,keyword,keyword))
+        c.execute("SELECT DISTINCT lcode FROM locations WHERE address LIKE ? OR prov LIKE ? or city LIKE ?", ('%'+keyword+'%','%'+keyword+'%','%'+keyword+'%'))
         current_lcodes = c.fetchall()
         for lcode in current_lcodes:
-            location_returns[keyword].append(lcode)
+            location_returns[keyword].append(lcode[0])
     
     # Make sure all keywords match
     if (keyword_count != 1):
@@ -222,23 +229,38 @@ def multi_parameter_ride_search(keyword1, keyword2=None, keyword3 = None):
             for lcode in location_returns[keyword1]:
                 if ((lcode in location_returns[keyword2]) and (lcode in location_returns[keyword3])):
                     lcodes.append(lcode)
+    else:
+        lcodes = location_returns[keyword1]
 
     rides = []
     # Get and show rides 
-    rno = None
+    chosen_rno = None
+    c.execute("SELECT * FROM enroute")
+    all_enroutes = c.fetchall()
+    enroutes = []
     for lcode in lcodes:
-        c.execute('SELECT * FROM rides WHERE src == ? OR dst == lcode', (lcode, lcode))
-        rides.append(c.fetchall())
-        c.execute('SELECT rno from enroute WHERE lcode == ?', lcode)
-        enroutes = c.fetchall()
+        c.execute('SELECT * FROM rides WHERE src == ? OR dst == ?', (lcode, lcode))
+        fetched_rows = c.fetchall()
+        for row in fetched_rows:
+            if row not in rides:
+                rides.append(row)
+        
+        for row in all_enroutes:
+            if row[1] == lcode:
+                enroutes.append(row[0])
+
         for rno in enroutes:
-            c.execute('SELECT * FROM rides WHERE rno == ?', rno)
-            rides.append(c.fetchall())
+            c.execute('SELECT * FROM rides WHERE rno == ?', (rno,))
+            fetched_rows = c.fetchall()
+            for row in fetched_rows:
+                if row not in rides:
+                    rides.append(row)
     
     idx = 0
     while(idx < len(rides)):
-        if((idx) % 5 != 0):
-            c.execute('SELECT * FROM cars WHERE cno == ?', rides[idx][8])
+        if(idx ==0 or idx % 5 != 0):
+            cno = rides[idx][8]
+            c.execute('SELECT * FROM cars WHERE cno == ?',(cno,))
             car_info = c.fetchone()
             if car_info != None:
                 print(rides[idx]+car_info)
@@ -248,7 +270,7 @@ def multi_parameter_ride_search(keyword1, keyword2=None, keyword3 = None):
         else:
             response = input('If any of these rides are what you are looking for enter the rno of that ride. Else press enter to see more results. ')
             if (re.match('^[0-9]*$',response)):
-                rno = response
+                chosen_rno = response
                 break
             else:
                 c.execute('SELECT * FROM cars WHERE cno == ?', rides[idx][8])
@@ -258,15 +280,18 @@ def multi_parameter_ride_search(keyword1, keyword2=None, keyword3 = None):
                 else:
                     print(rides[idx])
                 idx += 1
-    if (rno == None):
+    if (chosen_rno == None):
         response = input('If any of these rides are what you are looking for enter the rno of that ride. Else press enter to abandon search. ')
-        if (re.match('^[0-9]*$',response)):
-            rno = response
+        if (re.match('^[0-9]+$',response)):
+            chosen_rno = response
+        else:
+            chosen_rno = None
 
-    for i in range(len(rides)):
-            if rno in rides[i]:
-                return rno
-    print('Not a valid rno')
+    if (chosen_rno != None):
+        for i in range(len(rides)):
+            if int(chosen_rno) == int(rides[i][0]):
+                return chosen_rno
+        print('Not a valid rno')
     return None
 
 def message(rno, current_user_email):
@@ -275,9 +300,14 @@ def message(rno, current_user_email):
     c.execute("SELECT datetime('now')")
     datetime = c.fetchone()
     message = input("What would you like the message to the rider to say? ")
-    message_valid = re.match('^[0-9]*$',message)
+    message_valid = re.match('^[A-Za-z0-9_ ]*$',message)
     while (not message_valid):
         message = input("Message invalid. What would you like the message to the rider to say? ")
         message_valid = re.match('^[0-9]*$',message)
-    c.execute("INSERT INTO inbox VALUES (:email, :msgTimestamp, :sender, :content, :rno, :seen);", {"email":driver, "msgTimestamp":datetime, "sender":current_user_email, "content":message, "rno":rno, "seen":'n'})
+    c.execute("INSERT INTO inbox VALUES (:email, :msgTimestamp, :sender, :content, :rno, :seen);", {"email":driver[0], "msgTimestamp":datetime[0], "sender":current_user_email, "content":message, "rno":rno, "seen":'n'})
+    conn.commit()
     print("Message Sent")
+
+#TEST PURPOSES
+#search_rides('tom.maurer@yahoo.com')
+#offer_ride('coleb@hotmail.ca')
