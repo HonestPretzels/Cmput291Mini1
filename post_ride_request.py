@@ -37,30 +37,27 @@ def PostRideRequest(controller, username):
 		pick_up_code = input("Please provide a pickup location code: ")
 
 		#This section will be uncommented once we've established a database
-		# for lcode in locations:
-		# 	if lcode[0] == pick_up_code:
-		# 		valid_location = True
+		for lcode in locations:
+			if lcode[0] == pick_up_code:
+				valid_location = True
 
-		# if not valid_location:
-		# 	print("Location does not exist, please enter a valid location")
-
-		valid_location = True #remove when uncommenting above
-
+		if not valid_location:
+			print("Location does not exist, please enter a valid location")
 
 	valid_location = False
 
 	while not valid_location:
 		drop_off_code = input("Please provide a dropoff location code: ")
 
-		#This section will be uncommented once we've established a database
-		# for lcode in locations:
-		# 	if lcode[0] == drop_off_code:
-		# 		valid_location = True
+		# This section will be uncommented once we've established a database
+		for lcode in locations:
+			if lcode[0] == drop_off_code:
+				valid_location = True
 
-		# if not valid_location:
-		# 	print("Location does not exist, please enter a valid location")
+		if not valid_location:
+			print("Location does not exist, please enter a valid location")
 
-		valid_location = True #remove when uncommenting above
+		# valid_location = True #remove when uncommenting above
 
 	valid_price = False
 
@@ -78,7 +75,8 @@ def PostRideRequest(controller, username):
 		if not valid_price:
 			print("Invalid price, please enter an integer")
 
-	print(date, int(pick_up_code), int(drop_off_code), price)
+	#testprint
+	#print(date, int(pick_up_code), int(drop_off_code), price)
 
 	valid_rid = False
 	highest_rid = 0
