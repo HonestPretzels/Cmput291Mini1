@@ -20,10 +20,10 @@ def main():
             help()
 
         elif (action_choice == 'offer'):
-            offer_ride(current_user_email)
+            offer_ride(current_user_email, database)
         
         elif (action_choice == 'search_rides'):
-            search_rides(current_user_email)
+            search_rides(current_user_email, database)
 
         elif (action_choice == 'search_requests'):
             search_requests(current_user_email, database)

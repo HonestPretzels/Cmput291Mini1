@@ -1,10 +1,10 @@
 import sqlite3
 import re
-conn = sqlite3.connect('./proj.db')
-c = conn.cursor()
 
-def offer_ride(current_user_email):
-    
+
+def offer_ride(current_user_email,database):
+    conn = sqlite3.connect('./'+database)
+    c = conn.cursor()    
 
     # DATE
     date = input('Please enter the date of the ride in YYYY-MM-DD format: ')
@@ -40,7 +40,7 @@ def offer_ride(current_user_email):
     while(not source_valid):
         source = input('Source not valid. Please enter the source location: ')
         source_valid = re.match('^[A-Za-z0-9_]*$',source)
-    source, source_valid = choose_location(source)
+    source, source_valid = choose_location(source,database)
     if (not source_valid):
         print('Failed to find a source location. Ride offer aborted')
         return
@@ -51,7 +51,7 @@ def offer_ride(current_user_email):
     while(not destination_valid):
         destination = input('Destination not valid. Please enter the destination location: ')
         destination_valid = re.match('^[A-Za-z0-9_]*$',destination)
-    destination, destination_valid = choose_location(destination)
+    destination, destination_valid = choose_location(destination,database)
     if (not destination):
         print('Failed to find a source location. Ride offer aborted')
         return
@@ -60,7 +60,7 @@ def offer_ride(current_user_email):
     add_car = input('Would you like to add a car to this ride y/n? ').lower()
     while(add_car != 'n' and add_car != 'y'):
         add_car = input('Input invalid. Please respond with either \'y\' or \'n\'. Would you like to add a car to this ride? ')
-    car, car_found = choose_car(add_car,current_user_email)
+    car, car_found = choose_car(add_car,current_user_email,database)
 
     #CREATE RNO AND INSERT
     c.execute('SELECT rno FROM rides ORDER BY rno desc LIMIT 1')
@@ -84,14 +84,17 @@ def offer_ride(current_user_email):
             while(not enroute_valid):
                 enroute_keyword = input('Location keyword not valid. Please enter another location: ')
                 enroute_valid = re.match('^[A-Za-z0-9_]*$',enroute_keyword)
-            enroute, enroute_found = choose_location(enroute_keyword)
+            enroute, enroute_found = choose_location(enroute_keyword,database)
             if(enroute_found):
                 c.execute("INSERT INTO enroute VALUES (:rno, :lcode);", {"rno":rno, "lcode":enroute})
                 print('Enroute location: %s added to ride: %s'%(enroute,rno))
             add_enroute = input("Would you like to add another enroute location y/n? ")
     return
 
-def search_rides(current_user_email):
+def search_rides(current_user_email,database):
+    conn = sqlite3.connect('./'+database)
+    c = conn.cursor()  
+
     # First keyword
     keyword1 = input('Please enter a location keyword to search: ')
     keyword1_valid = re.match('^[A-Za-z0-9_]*$',keyword1)
@@ -126,11 +129,11 @@ def search_rides(current_user_email):
                 keyword_count = 3
                 
     if(keyword_count == 1):
-        rno = multi_parameter_ride_search(keyword1)
+        rno = multi_parameter_ride_search(database,keyword1)
     elif(keyword_count == 2):
-        rno = multi_parameter_ride_search(keyword1,keyword2)
+        rno = multi_parameter_ride_search(database,keyword1,keyword2)
     elif(keyword_count == 3):
-        rno = multi_parameter_ride_search(keyword1,keyword2,keyword3)
+        rno = multi_parameter_ride_search(database,keyword1,keyword2,keyword3)
 
     if (rno == None):
         print("No ride found")
@@ -142,18 +145,21 @@ def search_rides(current_user_email):
         if (message_request != 'y'):
             message_request = input('Input invalid. Please respond with either \'y\' or \'n\'. Would you like to message the poster of this ride requesting a booking? ')
         else:
-            message(rno,current_user_email)
+            message(rno,current_user_email,database)
             message_sent = True
 
 
 
 
-def choose_location(location_keyword):
+def choose_location(location_keyword,database):
     # Takes a keyword argument and allows the user to choose a location which matches that keyword
+
+    conn = sqlite3.connect('./'+database)
+    c = conn.cursor()  
 
     choices_found = False
     choice = None
-    if (len(location_keyword)==5):      # Lcode case
+    if (len(location_keyword)<=5):      # Lcode case
         c.execute('SELECT lcode FROM locations WHERE lcode LIKE ?', (location_keyword,))
         choice = c.fetchone()
     if (choice != None):
@@ -175,8 +181,12 @@ def choose_location(location_keyword):
         choices_found = False
         return '', choices_found
 
-def choose_car(add_car,current_user_email):
+def choose_car(add_car,current_user_email,database):
     # Helper function to allow the user to choose a car
+
+    conn = sqlite3.connect('./'+database)
+    c = conn.cursor()  
+
     if(add_car == 'y'):
         car = input('Please enter the car number: ')
         car_valid = re.match('^[0-9]*$', car)
@@ -195,13 +205,16 @@ def choose_car(add_car,current_user_email):
             if(add_car == 'n'):
                 return '', False
             else:
-                return choose_car(add_car, current_user_email)
+                return choose_car(add_car, current_user_email,database)
         else:
             return car, True
     else:
         return '', False
 
-def multi_parameter_ride_search(keyword1, keyword2=None, keyword3 = None):
+def multi_parameter_ride_search(database,keyword1, keyword2=None, keyword3 = None):
+    conn = sqlite3.connect('./'+database)
+    c = conn.cursor()  
+
     keywords, lcodes = [keyword1], []
     if(keyword2 != None):
         keywords.append(keyword2)
@@ -214,7 +227,7 @@ def multi_parameter_ride_search(keyword1, keyword2=None, keyword3 = None):
     location_returns = {}
     for keyword in keywords:
         location_returns[keyword] = []
-        c.execute("SELECT DISTINCT lcode FROM locations WHERE address LIKE ? OR prov LIKE ? or city LIKE ?", ('%'+keyword+'%','%'+keyword+'%','%'+keyword+'%'))
+        c.execute("SELECT DISTINCT lcode FROM locations WHERE address LIKE ? OR prov LIKE ? or city LIKE ? or lcode LIKE ?", ('%'+keyword+'%','%'+keyword+'%','%'+keyword+'%','%'+keyword+'%'))
         current_lcodes = c.fetchall()
         for lcode in current_lcodes:
             location_returns[keyword].append(lcode[0])
@@ -239,7 +252,7 @@ def multi_parameter_ride_search(keyword1, keyword2=None, keyword3 = None):
     all_enroutes = c.fetchall()
     enroutes = []
     for lcode in lcodes:
-        c.execute('SELECT * FROM rides WHERE src == ? OR dst == ?', (lcode, lcode))
+        c.execute('SELECT * FROM rides WHERE src LIKE ? OR dst LIKE ? COLLATE NOCASE', (lcode, lcode))
         fetched_rows = c.fetchall()
         for row in fetched_rows:
             if row not in rides:
@@ -294,7 +307,10 @@ def multi_parameter_ride_search(keyword1, keyword2=None, keyword3 = None):
         print('Not a valid rno')
     return None
 
-def message(rno, current_user_email):
+def message(rno, current_user_email,database):
+    conn = sqlite3.connect('./'+database)
+    c = conn.cursor()  
+
     c.execute('SELECT driver FROM rides WHERE rno == ?', rno)
     driver = c.fetchone()
     c.execute("SELECT datetime('now')")
@@ -307,7 +323,3 @@ def message(rno, current_user_email):
     c.execute("INSERT INTO inbox VALUES (:email, :msgTimestamp, :sender, :content, :rno, :seen);", {"email":driver[0], "msgTimestamp":datetime[0], "sender":current_user_email, "content":message, "rno":rno, "seen":'n'})
     conn.commit()
     print("Message Sent")
-
-#TEST PURPOSES
-#search_rides('tom.maurer@yahoo.com')
-#offer_ride('coleb@hotmail.ca')
