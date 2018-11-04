@@ -38,6 +38,7 @@ def PostRideRequest(controller, username):
 
 		#This section will be uncommented once we've established a database
 		for lcode in locations:
+			#print(lcode[0])
 			if lcode[0] == pick_up_code:
 				valid_location = True
 
@@ -45,12 +46,14 @@ def PostRideRequest(controller, username):
 			print("Location does not exist, please enter a valid location")
 
 	valid_location = False
+	locations = c.execute("SELECT lcode FROM locations;")
 
 	while not valid_location:
 		drop_off_code = input("Please provide a dropoff location code: ")
 
 		# This section will be uncommented once we've established a database
 		for lcode in locations:
+			#print(lcode[0])
 			if lcode[0] == drop_off_code:
 				valid_location = True
 
@@ -89,7 +92,7 @@ def PostRideRequest(controller, username):
 
 	rid = highest_rid + 1
 
-	cursor.execute("INSERT INTO requests (rid, email, rdate, pickup, dropoff, amount) VALUES (:r_rid, :u_email, :r_rdate, :r_pickup, :r_dropoff, :r_amount)", {"r_rid":rid, "u_email":username, "r_rdate":date, "r_pickup":int(pick_up_code), "r_dropoff":int(drop_off_code), "r_amount": price})
+	cursor.execute("INSERT INTO requests (rid, email, rdate, pickup, dropoff, amount) VALUES (:r_rid, :u_email, :r_rdate, :r_pickup, :r_dropoff, :r_amount)", {"r_rid":rid, "u_email":username, "r_rdate":date, "r_pickup":pick_up_code, "r_dropoff":drop_off_code, "r_amount": price})
 
 	# I want to do some error handling to check before commits but don't know how yet
 	# if sqlca.sqlcode == 0:
