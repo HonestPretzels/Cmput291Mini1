@@ -4,7 +4,7 @@ from login import login
 from deleteRequest import delete_request
 from searchRequests import search_requests
 from rides import offer_ride, search_rides
-from post_ride_request import PostRideRequest
+from post_ride_request import post_ride_request
 from manage_bookings import manage_bookings
 
 def main():
