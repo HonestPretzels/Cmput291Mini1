@@ -20,11 +20,11 @@ def manage_bookings(controller, username):
 
 		response = input().lower()
 
-		scrub_check = re.match('[A-Za-z0-9_]$', response)
+		# scrub_check = re.match('[A-Za-z0-9_]$', response)
 
-		if not scrub_check:
-			print("Invalid characters used, returning to menu")
-			break
+		# if not scrub_check:
+		# 	print("Invalid characters used, returning to menu")
+		# 	break
 
 		if response == "menu":
 			quit = True
@@ -197,7 +197,7 @@ def manage_bookings(controller, username):
 					
 					lcode_match = False
 					for lcode in locations:
-						if pickup == lcode[0]:
+						if pickup.lower() == lcode[0].lower():
 							valid_response = True
 							lcode_match = True
 							break
@@ -213,7 +213,7 @@ def manage_bookings(controller, username):
 
 					lcode_match = False
 					for lcode in locations:
-						if dropoff == lcode[0]:
+						if dropoff.lower() == lcode[0].lower():
 							valid_response = True
 							lcode_match = True
 							break
