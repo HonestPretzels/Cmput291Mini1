@@ -215,83 +215,88 @@ def multi_parameter_ride_search(database,keyword1, keyword2=None, keyword3 = Non
     conn = sqlite3.connect('./'+database)
     c = conn.cursor()  
 
-    keywords, lcodes = [keyword1], []
+    keywords, lcodes = [keyword1], {keyword1:[]}
     if(keyword2 != None):
         keywords.append(keyword2)
+        lcodes[keyword2]=[]
         if(keyword3 != None):   
             keywords.append(keyword3)
+            lcodes[keyword3]=[]
 
     keyword_count = len(keywords)
 
     # Get viable lcodes
-    location_returns = {}
     for keyword in keywords:
-        location_returns[keyword] = []
         c.execute("SELECT DISTINCT lcode FROM locations WHERE address LIKE ? OR prov LIKE ? or city LIKE ? or lcode LIKE ?", ('%'+keyword+'%','%'+keyword+'%','%'+keyword+'%','%'+keyword+'%'))
         current_lcodes = c.fetchall()
         for lcode in current_lcodes:
-            location_returns[keyword].append(lcode[0])
+            lcodes[keyword].append(lcode[0])
     
-    # Make sure all keywords match
-    if (keyword_count != 1):
-        if (keyword_count == 2):
-            for lcode in location_returns[keyword1]:
-                if (lcode in location_returns[keyword2]):
-                    lcodes.append(lcode)
-        else:
-            for lcode in location_returns[keyword1]:
-                if ((lcode in location_returns[keyword2]) and (lcode in location_returns[keyword3])):
-                    lcodes.append(lcode)
-    else:
-        lcodes = location_returns[keyword1]
-
-    rides = []
+    rides = {}
     # Get and show rides 
     chosen_rno = None
     c.execute("SELECT * FROM enroute")
     all_enroutes = c.fetchall()
-    enroutes = []
-    for lcode in lcodes:
-        c.execute('SELECT * FROM rides WHERE src LIKE ? OR dst LIKE ? COLLATE NOCASE', (lcode, lcode))
-        fetched_rows = c.fetchall()
-        for row in fetched_rows:
-            if row not in rides:
-                rides.append(row)
-        
-        for row in all_enroutes:
-            if row[1] == lcode:
-                enroutes.append(row[0])
-
-        for rno in enroutes:
-            c.execute('SELECT * FROM rides WHERE rno == ?', (rno,))
+    for keyword in keywords:
+        enroutes = []
+        rides[keyword]=[]
+        for lcode in lcodes[keyword]:
+            c.execute('SELECT * FROM rides WHERE src LIKE ? OR dst LIKE ? COLLATE NOCASE', (lcode, lcode))
             fetched_rows = c.fetchall()
             for row in fetched_rows:
                 if row not in rides:
-                    rides.append(row)
+                    rides[keyword].append(row)
+        
+            for row in all_enroutes:
+                if row[1] == lcode:
+                    enroutes.append(row[0])
+
+            for rno in enroutes:
+                c.execute('SELECT * FROM rides WHERE rno == ?', (rno,))
+                fetched_rows = c.fetchall()
+                for row in fetched_rows:
+                    if row not in rides:
+                        rides[keyword].append(row)
     
+    checked_rides = []
+    if (keyword_count == 1):
+        for ride in rides[keyword1]:
+            if ride not in checked_rides:
+                checked_rides.append(ride)
+    elif (keyword_count == 2):
+        for ride in rides[keyword1]:
+            if (ride in rides[keyword2]):
+                if ride not in checked_rides:
+                    checked_rides.append(ride)
+    else:
+        for ride in rides[keyword1]:
+            if (ride in rides[keyword2] and ride in rides[keyword3]):
+                if ride not in checked_rides:
+                    checked_rides.append(ride) 
+
     idx = 0
-    while(idx < len(rides)):
+    while(idx < len(checked_rides)):
         if(idx ==0 or idx % 5 != 0):
-            cno = rides[idx][8]
+            cno = checked_rides[idx][8]
             c.execute('SELECT * FROM cars WHERE cno == ?',(cno,))
             car_info = c.fetchone()
             if car_info != None:
-                print(rides[idx]+car_info)
+                print(checked_rides[idx]+car_info)
             else:
-                print(rides[idx])
+                print(checked_rides[idx])
             idx += 1
         else:
             response = input('If any of these rides are what you are looking for enter the rno of that ride. Else press enter to see more results. ')
-            if (re.match('^[0-9]*$',response)):
+            if (re.match('^[0-9]+$',response)):
                 chosen_rno = response
                 break
             else:
-                c.execute('SELECT * FROM cars WHERE cno == ?', rides[idx][8])
+                c.execute('SELECT * FROM cars WHERE cno == ?', (checked_rides[idx][8],))
                 car_info = c.fetchone()
                 if car_info != None:
-                    print(rides[idx]+car_info)
+                    print(checked_rides[idx]+car_info)
                 else:
-                    print(rides[idx])
+                    print(checked_rides[idx])
                 idx += 1
     if (chosen_rno == None):
         response = input('If any of these rides are what you are looking for enter the rno of that ride. Else press enter to abandon search. ')
@@ -301,8 +306,8 @@ def multi_parameter_ride_search(database,keyword1, keyword2=None, keyword3 = Non
             chosen_rno = None
 
     if (chosen_rno != None):
-        for i in range(len(rides)):
-            if int(chosen_rno) == int(rides[i][0]):
+        for i in range(len(checked_rides)):
+            if int(chosen_rno) == int(checked_rides[i][0]):
                 return chosen_rno
         print('Not a valid rno')
     return None
