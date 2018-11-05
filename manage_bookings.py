@@ -12,16 +12,11 @@ def manage_bookings(controller, username):
 	while not quit:
 		print("Manage bookings:")
 		print("To view your bookings, please enter 'view bookings'")
-		print("To view all of your rides, please enter 'view rides'") 
+		print("To view your rides, please enter 'view rides'") 
 		print("To book a member on a ride, please enter the ride number")
 		print("To return to the menu, please enter 'menu'")
-		#need to rewrite to return number of remaining seats
-		rides = cursor.execute("SELECT * FROM rides r WHERE r.driver = :u_username LIMIT 5;", {"u_username":username})
 
-		print("\nPosted Rides (up to 5)")
-		for ride in rides:
-			#print("Rno: {ride[0]}, Price per Seat: {ride[1]}, Date: {ride[2]}, Seats: {ride[3]}, Luggage Description: {ride[4]}, Source Lcode: {ride[5]}: Destination Lcode: {ride[6]}")
-			print(ride)
+
 		response = input().lower()
 
 		if response == "menu":
@@ -85,11 +80,27 @@ def manage_bookings(controller, username):
 #----------------------------------------------------------------------------------------------------------------------------#
 #handle view rides
 		elif response == 'view rides':
-			total_rides = cursor.execute("SELECT * FROM rides r WHERE r.driver = :u_username", {"u_username":username})
+			rides = cursor.execute("SELECT r.rno, r.price, r.rdate, r.seats, r.lugdesc, r.src, r.dst, r.seats - SUM(b.seats) FROM rides r, bookings b WHERE r.rno = b.rno and r.driver = :_username GROUP BY r.rno UNION SELECT r.rno, r.price, r.rdate, r.seats, r.lugdesc, r.src, r.dst, r.seats FROM rides r WHERE r.driver = :_username EXCEPT SELECT r.rno, r.price, r.rdate, r.seats, r.lugdesc, r.src, r.dst, r.seats FROM rides r, bookings b WHERE r.rno = b.rno;",{"_username":username})
 
-			print("Posted rides:")
-			for ride in total_rides:
-				print("Rno: %d, Price per Seat: %d, Date: %s, Seats: %d, Luggage Description: %s, Source Lcode: %d: Destination Lcode: %d",(ride[0], ride[1], ride[2], ride[3], ride[4], ride[5], ride[6]))
+			
+
+			not_return = False
+			loop = 1
+			
+			#Print list of rides
+			while  not not_return:
+				print("Posted rides:")
+				ride_list = rides.fetchmany(5)
+				for ride in ride_list:
+					print(ride)
+				if len(ride_list) < 5:
+					print("End of list")
+					not_return = True
+				
+				if not not_return:
+					more_rides = input("To view more rides, press enter. Otherwise enter 'quit'").lower()
+					if more_rides == "quit":
+						not_return = True
 
 			input("Press enter to return to menu")
 
@@ -152,7 +163,8 @@ def manage_bookings(controller, username):
 						bookings = cursor.execute("SELECT seats FROM bookings WHERE rno = :_rno;",{"_rno":tracked_ride[0]})
 
 						for booking in bookings:
-							num_seats -= booking[4]
+							#print(booking)
+							num_seats -= booking[0]
 
 						if num_seats < 0:
 							get_response = input("You have overbooked your ride, if you're sure you want to do this enter 'yes' otherwise, enter anything to try again: ").lower()
@@ -215,14 +227,6 @@ def manage_bookings(controller, username):
 				input("Booking added, press enter to return")
 
 #----------------------------------------------------------------------------------------------------------------------------#
-			#No valid response
-			# else:
-			# 	input("Invalid response, press enter to continue")
-
-
-
-
-#-------------------------------------------#
 #testing function
 
 # conn = sqlite3.connect('./proj.db')
