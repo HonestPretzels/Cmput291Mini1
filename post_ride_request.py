@@ -30,7 +30,7 @@ def PostRideRequest(controller, username):
 
 
 	valid_location = False
-	locations = c.execute("SELECT lcode FROM locations;")
+	locations = cursor.execute("SELECT lcode FROM locations;")
 
 
 	while not valid_location:
@@ -46,7 +46,7 @@ def PostRideRequest(controller, username):
 			print("Location does not exist, please enter a valid location")
 
 	valid_location = False
-	locations = c.execute("SELECT lcode FROM locations;")
+	locations = cursor.execute("SELECT lcode FROM locations;")
 
 	while not valid_location:
 		drop_off_code = input("Please provide a dropoff location code: ")
@@ -84,7 +84,7 @@ def PostRideRequest(controller, username):
 	valid_rid = False
 	highest_rid = 0
 
-	existing_rids = c.execute("SELECT rid FROM requests")
+	existing_rids = cursor.execute("SELECT rid FROM requests")
 
 	for temp_rid in existing_rids:
 		if temp_rid[0] > highest_rid:
