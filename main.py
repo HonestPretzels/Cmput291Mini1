@@ -52,6 +52,7 @@ def help():
     print("To search ride requests, type 'search_requests'")
     print("To delete a request you've made, type 'delete_request'")
     print("To post a request, type 'post_request'")
-    print("To manage a booking, type 'manage_bookings'\n")
+    print("To manage a booking, type 'manage_bookings'")
+    print("To close the program, type 'exit'\n")
 
 main()
