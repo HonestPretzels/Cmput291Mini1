@@ -87,6 +87,7 @@ def offer_ride(current_user_email,database):
             enroute, enroute_found = choose_location(enroute_keyword,database)
             if(enroute_found):
                 c.execute("INSERT INTO enroute VALUES (:rno, :lcode);", {"rno":rno, "lcode":enroute})
+                conn.commit()
                 print('Enroute location: %s added to ride: %s'%(enroute,rno))
             add_enroute = input("Would you like to add another enroute location y/n? ")
     return
@@ -244,10 +245,10 @@ def multi_parameter_ride_search(database,keyword1, keyword2=None, keyword3 = Non
             c.execute('SELECT * FROM rides WHERE src LIKE ? OR dst LIKE ? COLLATE NOCASE', (lcode, lcode))
             fetched_rows = c.fetchall()
             for row in fetched_rows:
-                if row not in rides:
+                if row not in rides[keyword]:
                     rides[keyword].append(row)
         
-            for row in all_enroutes:
+            for row in all_enroutes:           
                 if row[1] == lcode:
                     enroutes.append(row[0])
 
@@ -255,7 +256,7 @@ def multi_parameter_ride_search(database,keyword1, keyword2=None, keyword3 = Non
                 c.execute('SELECT * FROM rides WHERE rno == ?', (rno,))
                 fetched_rows = c.fetchall()
                 for row in fetched_rows:
-                    if row not in rides:
+                    if row not in rides[keyword]:
                         rides[keyword].append(row)
     
     checked_rides = []
