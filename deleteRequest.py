@@ -9,7 +9,7 @@ def delete_request(username, database):
     c.execute("SELECT * FROM requests WHERE email = :u_name;", { "u_name":username })
     rides = c.fetchall()
 
-    if(len(rides) > 0):
+    if rides:
         for ride in rides:
             print(ride)
 
@@ -29,9 +29,17 @@ def delete_request(username, database):
         # Make sure the user owns the selected request
         c.execute("SELECT email FROM requests WHERE rid = :r_no;", { "r_no":r_number})
         name = c.fetchone()
+        valid_name = True
 
-        while (name[0] != username):
+        if not name:
+            print("That request does not exist.")
+            valid_name = False
+        elif (name[0] != username):
             print("You do not own this request. Please select a request that you have made to delete it.")
+            valid_name = False
+
+
+        while not valid_name:
             r_number = input("Please enter the id of the request you would like to delete or 'q' to quit: ")
 
             # Validate input
@@ -48,6 +56,15 @@ def delete_request(username, database):
             # Make sure the user owns the selected request
             c.execute("SELECT email FROM requests WHERE rid = :r_no;", { "r_no":r_number})
             name = c.fetchone()
+
+            if not name:
+                print("That request does not exist.")
+                valid_name = False
+            elif (name[0] != username):
+                print("You do not own this request. Please select a request that you have made to delete it.")
+                valid_name = False
+            else:
+                valid_name = True
 
         # Delete request
         c.execute("DELETE FROM requests WHERE rid = :r_no;", { "r_no":r_number})

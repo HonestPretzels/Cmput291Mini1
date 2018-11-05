@@ -21,7 +21,7 @@ def login(database):
     found = False
 
     # Check for email address in entries
-    if len(rows) > 0:
+    if rows:
         found = True
 
         # Login if found
@@ -67,7 +67,7 @@ def login(database):
             valid_name = True
             if name == '' or name == ' ':
                 valid_name = False
-            elif not re.match('^[A-Za-z0-9_]*$', name):
+            elif not re.match('^[A-Za-z0-9_ ]*$', name):
                 valid_name = False
             while not valid_name:
                 print("You must enter a valid name.")
@@ -75,7 +75,7 @@ def login(database):
                 name = input()
                 if name == '' or name == ' ':
                     valid_name = False
-                elif not re.match('^[A-Za-z0-9_]*$', name):
+                elif not re.match('^[A-Za-z0-9_ ]*$', name):
                     valid_name = False
                 else:
                     valid_name = True

@@ -23,7 +23,7 @@ def search_requests(username, database):
     else:
         c.execute("SELECT * FROM requests WHERE pickup = :loc COLLATE NOCASE;", {"loc":location})
         rides = c.fetchmany(5)
-    if (len(rides) == 0):
+    if not rides:
             print("No matching rides")
             return
     
@@ -69,6 +69,7 @@ def search_requests(username, database):
 
             # Commit the message to the DB
             c.execute("INSERT INTO inbox (email, msgTimestamp, sender, content, rno, seen) VALUES (:recip, datetime('now'), :sender, :content, :rno, 'n');", {"recip":email[0], "sender":username, "content":message, "rno":rno})
+            conn.commit()
             return
         else:
             rides = c.fetchmany(5)

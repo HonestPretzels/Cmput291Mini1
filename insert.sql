@@ -40,7 +40,8 @@ INSERT INTO requests VALUES('2','joPoulin@hotmail.ca','2018-12-20','EDM01','CAL0
 INSERT INTO requests VALUES('3','joPoulin@hotmail.ca','2018-12-20','BAL01','CAL01','19');
 INSERT INTO requests VALUES('4','joPoulin@hotmail.ca','2018-12-20','EDM01','CAL01','15');
 INSERT INTO requests VALUES('5','joPoulin@hotmail.ca','2018-12-20','EDM01','CAL01','122');
-INSERT INTO requests VALUES('6','joPoulin@hotmail.ca','2018-12-20','EDM01','BAL01','15');
+INSERT INTO requests VALUES('6','tom.maurer@yahoo.com','2018-12-20','EDM01','BAL01','15');
+INSERT INTO requests VALUES('10','tom.maurer@yahoo.com','2018-12-20','EDM01','BAL01','15');
 INSERT INTO requests VALUES('7','joPoulin@hotmail.ca','2018-12-20','EDM01','CAL01','112');
 INSERT INTO requests VALUES('8','joPoulin@hotmail.ca','2018-12-20','BAL01','CAL01','17');
 INSERT INTO requests VALUES('9','joPoulin@hotmail.ca','2018-12-20','EDM01','CAL01','144');
