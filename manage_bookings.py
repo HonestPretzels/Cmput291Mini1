@@ -1,5 +1,5 @@
 import sqlite3
-import datetime
+import re
 
 def manage_bookings(controller, username):
 
@@ -7,6 +7,7 @@ def manage_bookings(controller, username):
 
 	quit = False
 
+# re.match('^[0-9]{4}-[0-9]{2}-[0-9]{2}$',date)
 
 
 	while not quit:
@@ -18,6 +19,12 @@ def manage_bookings(controller, username):
 
 
 		response = input().lower()
+
+		scrub_check = re.match('[A-Za-z0-9_]$', response)
+
+		if not scrub_check:
+			print("Invalid characters used, returning to menu")
+			break
 
 		if response == "menu":
 			quit = True
@@ -130,12 +137,15 @@ def manage_bookings(controller, username):
 				valid_response = False
 				while not valid_response:
 					email = input("Please enter a member's email: ")
+					valid_email = True if re.match("[^@]+@[^@]+\.[^@]+", username) else False
+					while not valid_email:
+						username = input("Please enter a valid email of the format 'example@123.ca': ")
+						valid_email = True if re.match("[^@]+@[^@]+\.[^@]+", username) else False
 
-					member_name = cursor.execute("SELECT email FROM members WHERE email = :_email;", {"_email": email})
-					#not a good way to do this but tbh, don't know how else to check the values inside a query
-					for name in member_name:
-						if name[0] == email:
-							valid_response = True
+					member_name = cursor.execute("SELECT email FROM members WHERE email = :_email;", {"_email": email}).fetchone()
+
+					if member_name is not None:
+						valid_response = True
 
 				#get cost per seat
 				valid_response = False
@@ -144,7 +154,8 @@ def manage_bookings(controller, username):
 
 					try:
 						cost = int(cost_per_seat)
-						valid_response = True
+						if cost >= 0:
+							valid_response = True
 
 					except ValueError:
 						print("Invalid input, please try again")
@@ -183,6 +194,7 @@ def manage_bookings(controller, username):
 				while not valid_response:
 					pickup = input("Please enter a pickup location lcode: ")
 
+					
 					lcode_match = False
 					for lcode in locations:
 						if pickup == lcode[0]:
